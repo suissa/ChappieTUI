@@ -1,0 +1,66 @@
+{
+  "comparison_lipgloss_gallery.png": {
+    "url": "https://litter.catbox.moe/dpvong.png",
+    "desc": "Lipgloss Gallery (Bordas, Cores, Lista)"
+  },
+  "comparison_lipgloss_table.png": {
+    "url": "https://litter.catbox.moe/k792vp.png",
+    "desc": "Lipgloss Tabela de Microserviços"
+  },
+  "comparison_lipgloss_tree.png": {
+    "url": "https://litter.catbox.moe/kavu8d.png",
+    "desc": "Lipgloss Árvore de Diretórios"
+  },
+  "comparison_lipgloss_layout.png": {
+    "url": "https://litter.catbox.moe/4djr6o.png",
+    "desc": "Lipgloss Dashboard Multi-coluna"
+  },
+  "comparison_tabs.png": {
+    "url": "https://litter.catbox.moe/lr4y40.png",
+    "desc": "Tabs Component"
+  },
+  "comparison_table.png": {
+    "url": "https://litter.catbox.moe/yofw89.png",
+    "desc": "Top Cities Table Component"
+  },
+  "comparison_basics_initial.png": {
+    "url": "https://litter.catbox.moe/ho1y2q.png",
+    "desc": "Grocery List (Inicial)"
+  },
+  "comparison_basics_selected.png": {
+    "url": "https://litter.catbox.moe/98fssh.png",
+    "desc": "Grocery List (Selecionado)"
+  },
+  "comparison_commands.png": {
+    "url": "https://litter.catbox.moe/u63pxw.png",
+    "desc": "HTTP Status Checker (Commands)"
+  },
+  "dashboard.png": {
+    "url": "https://litter.catbox.moe/0w3cuk.png",
+    "desc": "Dashboard Completo Zig 0.16"
+  },
+  "zig_textinput.png": {
+    "url": "https://litter.catbox.moe/ml8d88.png",
+    "desc": "Text Input Interativo"
+  },
+  "zig_spinner.png": {
+    "url": "https://litter.catbox.moe/srzhde.png",
+    "desc": "Spinner Animado"
+  },
+  "zig_mouse.png": {
+    "url": "https://litter.catbox.moe/pl5kin.png",
+    "desc": "Mouse Motion & Click Tracking"
+  },
+  "zig_fullscreen.png": {
+    "url": "https://litter.catbox.moe/yxeefr.png",
+    "desc": "Fullscreen AltScreen"
+  },
+  "comparison_progress_gradients.png": {
+    "url": "https://litter.catbox.moe/qx56uc.png",
+    "desc": "Gradient Progress Bars (Go vs Zig 0.16)"
+  },
+  "zig_progress_gradients.png": {
+    "url": "https://litter.catbox.moe/8odnhz.png",
+    "desc": "Gradient Progress Bars Zig 0.16"
+  }
+}
