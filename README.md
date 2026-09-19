@@ -1,8 +1,9 @@
 <p align="center">
-  <img src="logo.png" width="600px" alt="TUI.zig Neon Logo"  />
+  <img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/3f96d29c-05dd-4467-a8aa-1fbed168e003" />
+
 </p>
 
-**TUI.zig** é uma biblioteca/framework moderna, rápida e expressiva para desenvolvimento de interfaces de terminal (TUI) em **Zig 0.16**, baseada nos paradigmas funcionais e reativos da **The Elm Architecture** (inspirado no Charm Bubble Tea e Lipgloss).
+**ChappieTUI** é uma biblioteca/framework moderna, rápida e expressiva para desenvolvimento de interfaces de terminal (TUI) em **Zig 0.16**, baseada nos paradigmas funcionais e reativos da **The Elm Architecture** (inspirado no Charm Bubble Tea e Lipgloss).
 
 Inclui o submódulo integrado **Lipgloss** para estilização com TrueColor (RGB 24-bit), gradientes, tabelas, árvores de renderização e layouts responsivos.
 
@@ -33,7 +34,7 @@ Inclui o submódulo integrado **Lipgloss** para estilização com TrueColor (RGB
     .version = "0.1.0",
     .dependencies = .{
         .tui = .{
-            .url = "https://github.com/suissadev/TUI.zig/archive/main.tar.gz",
+            .url = "https://github.com/suissadev/ChappieTUI/archive/main.tar.gz",
             // .hash = "...",
         },
     },
@@ -90,7 +91,7 @@ const Model = struct {
             .background(lipgloss.Color.hex("#7D56F4"))
             .padding(1, 2, 1, 2);
 
-        const banner = try style.render(allocator, "Olá, TUI.zig!");
+        const banner = try style.render(allocator, "Olá, ChappieTUI!");
         defer allocator.free(banner);
 
         try buf.writeAll(banner);
