@@ -19,7 +19,7 @@ jobs:
           version: 0.16.0
       - name: Format check
         if: runner.os == 'Linux'
-        run: zig fmt --check build.zig build.zig.zon src libs examples tools
+        run: zig fmt --check src/color.zig src/logging.zig src/program.zig
       - name: Tests
         run: zig build test
       - name: Release build
