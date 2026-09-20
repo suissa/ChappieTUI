@@ -34,7 +34,7 @@ Inclui o submódulo integrado **Lipgloss** para estilização com TrueColor (RGB
     .version = "0.1.0",
     .dependencies = .{
         .tui = .{
-            .url = "https://github.com/suissadev/ChappieTUI/archive/main.tar.gz",
+            .url = "https://github.com/suissa/ChappieTUI/archive/main.tar.gz",
             // .hash = "...",
         },
     },

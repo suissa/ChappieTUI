@@ -1,20 +1,26 @@
-name: build
-on: [push, pull_request]
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
-  build:
-    uses: charmbracelet/meta/.github/workflows/build.yml@main
-
-  build-go-mod:
-    uses: charmbracelet/meta/.github/workflows/build.yml@main
-    with:
-      go-version: ""
-      go-version-file: ./go.mod
-
-  build-examples:
-    if: github.actor != 'dependabot[bot]'
-    uses: charmbracelet/meta/.github/workflows/build.yml@main
-    with:
-      go-version: ""
-      go-version-file: ./examples/go.mod
-      working-directory: ./examples
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - name: Format check
+        if: runner.os == 'Linux'
+        run: zig fmt --check src/color.zig src/logging.zig src/program.zig
+      - name: Tests
+        run: zig build test
+      - name: Release build
+        run: zig build -Doptimize=ReleaseFast

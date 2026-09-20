@@ -65,6 +65,7 @@ pub fn Program(comptime ModelType: type) type {
         running: std.atomic.Value(bool),
         queue_lock: SpinLock = .{},
         msg_queue: std.ArrayList(Msg) = .empty,
+        msg_queue_head: usize = 0,
         input_thread: ?std.Thread = null,
         last_width: u16 = 0,
         last_height: u16 = 0,
@@ -112,8 +113,27 @@ pub fn Program(comptime ModelType: type) type {
         pub fn popMsg(self: *Self) ?Msg {
             self.queue_lock.lock();
             defer self.queue_lock.unlock();
-            if (self.msg_queue.items.len == 0) return null;
-            return self.msg_queue.orderedRemove(0);
+            if (self.msg_queue_head >= self.msg_queue.items.len) {
+                self.msg_queue.clearRetainingCapacity();
+                self.msg_queue_head = 0;
+                return null;
+            }
+
+            const msg = self.msg_queue.items[self.msg_queue_head];
+            self.msg_queue_head += 1;
+
+            // Compact only occasionally. Normal dequeue stays O(1).
+            if (self.msg_queue_head >= 1024 and self.msg_queue_head * 2 >= self.msg_queue.items.len) {
+                const remaining = self.msg_queue.items.len - self.msg_queue_head;
+                std.mem.copyForwards(
+                    Msg,
+                    self.msg_queue.items[0..remaining],
+                    self.msg_queue.items[self.msg_queue_head..],
+                );
+                self.msg_queue.items.len = remaining;
+                self.msg_queue_head = 0;
+            }
+            return msg;
         }
 
         pub fn quit(self: *Self) void {
@@ -234,7 +254,7 @@ pub fn Program(comptime ModelType: type) type {
                     _ = std.Thread.spawn(.{}, timerWorker, .{ self, t.duration_ms, t.tag, false }) catch {};
                 },
                 .every => |e| {
-                    _ = std.Thread.spawn(.{}, timerWorker, .{ self, e.interval_ms, e.tag, false }) catch {};
+                    _ = std.Thread.spawn(.{}, timerWorker, .{ self, e.interval_ms, e.tag, true }) catch {};
                 },
                 .task => |func| {
                     _ = std.Thread.spawn(.{}, taskWorker, .{ self, func }) catch {};
@@ -363,10 +383,12 @@ pub fn Program(comptime ModelType: type) type {
         }
 
         fn timerWorker(self: *Self, duration_ms: u64, tag: usize, repeat: bool) void {
-            _ = repeat;
-            sleepMs(@intCast(duration_ms));
-            if (self.running.load(.acquire)) {
+            while (self.running.load(.acquire)) {
+                sleepMs(@intCast(duration_ms));
+                if (!self.running.load(.acquire)) return;
+
                 self.pushMsg(.{ .tick = .{ .time_ms = getTimestampMs(), .tag = tag } });
+                if (!repeat) return;
             }
         }
 
