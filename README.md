@@ -126,6 +126,7 @@ zig build test
 # Exemplos interativos
 zig build run-dashboard          # System Dashboard completo com métricas
 zig build run-progress-animated  # Barra de progresso animada com gradiente
+zig build run-slide-motion       # SlideIn/SlideOut com duração e rolagem do terminal
 zig build run-lipgloss-gallery   # Galeria de estilos Lipgloss
 zig build run-lipgloss-table     # Tabelas estilizadas
 zig build run-lipgloss-tree      # Árvores hierárquicas
