@@ -348,12 +348,22 @@ pub fn Program(comptime ModelType: type) type {
 
         fn inputReaderWorker(self: *Self) void {
             var buf: [512]u8 = undefined;
+            var combined: [640]u8 = undefined;
+            var pending_osc: [128]u8 = undefined;
+            var pending_len: usize = 0;
             while (self.running.load(.acquire)) {
                 const n = self.terminal.readInput(&buf);
                 if (n > 0) {
+                    var input: []const u8 = buf[0..n];
+                    if (pending_len > 0) {
+                        @memcpy(combined[0..pending_len], pending_osc[0..pending_len]);
+                        @memcpy(combined[pending_len .. pending_len + n], buf[0..n]);
+                        input = combined[0 .. pending_len + n];
+                        pending_len = 0;
+                    }
                     var offset: usize = 0;
-                    while (offset < n) {
-                        const slice = buf[offset..n];
+                    while (offset < input.len) {
+                        const slice = input[offset..input.len];
 
                         // OSC 11 terminal background-color response. Unsupported or malformed
                         // replies are ignored, preserving the terminal-default fallback.
@@ -361,9 +371,15 @@ pub fn Program(comptime ModelType: type) type {
                             if (parseOsc11Background(slice)) |response| {
                                 self.pushMsg(.{ .custom = .{ .id = 0xB011, .data = response.rgb } });
                                 offset += response.consumed;
+                            } else if (std.mem.indexOfScalar(u8, slice, 7) == null and
+                                std.mem.indexOf(u8, slice, "\x1b\\") == null and slice.len <= pending_osc.len)
+                            {
+                                @memcpy(pending_osc[0..slice.len], slice);
+                                pending_len = slice.len;
+                                offset = input.len;
                             } else {
-                                // Never leak a partial OSC reply into ordinary key handling.
-                                offset = n;
+                                // Ignore malformed or oversized OSC replies.
+                                offset = input.len;
                             }
                             continue;
                         }
