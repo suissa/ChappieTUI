@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const tui = @import("tui");
 const lipgloss = @import("lipgloss");
 
@@ -11,14 +12,27 @@ const Model = struct {
     progress: f32 = 0,
     mode: ButtonMode = .idle,
     last_action: []const u8 = "Scroll up/down to control the gradient",
+    terminal_background: [3]u8 = .{ 0, 0, 0 },
+    has_terminal_background: bool = false,
 
     pub fn init(self: Model) tui.Cmd {
         _ = self;
-        return tui.tick(24, 0);
+        return tui.batch(&initial_cmds);
     }
 
     pub fn update(self: *Model, msg: tui.Msg) tui.Cmd {
         switch (msg) {
+            .custom => |custom| {
+                if (custom.id == 0xB011) {
+                    self.terminal_background = .{
+                        @intCast((custom.data >> 16) & 0xff),
+                        @intCast((custom.data >> 8) & 0xff),
+                        @intCast(custom.data & 0xff),
+                    };
+                    self.has_terminal_background = true;
+                    self.last_action = "Terminal background detected via OSC 11";
+                }
+            },
             .key => |key| {
                 if (key.matches("q") or key.matches("ctrl+c")) return tui.quit();
 
@@ -114,9 +128,21 @@ const Model = struct {
                 else
                     1.0;
                 const scale = 0.52 + edge_ratio * 0.48;
-                const red: u8 = @intFromFloat(72.0 * scale);
-                const green: u8 = @intFromFloat(104.0 * scale);
-                const blue: u8 = @intFromFloat(238.0 * scale);
+                const red: u8 = if (self.has_terminal_background)
+                    @intFromFloat(@as(f32, @floatFromInt(self.terminal_background[0])) +
+                        (72.0 - @as(f32, @floatFromInt(self.terminal_background[0]))) * edge_ratio)
+                else
+                    @intFromFloat(72.0 * scale);
+                const green: u8 = if (self.has_terminal_background)
+                    @intFromFloat(@as(f32, @floatFromInt(self.terminal_background[1])) +
+                        (104.0 - @as(f32, @floatFromInt(self.terminal_background[1]))) * edge_ratio)
+                else
+                    @intFromFloat(104.0 * scale);
+                const blue: u8 = if (self.has_terminal_background)
+                    @intFromFloat(@as(f32, @floatFromInt(self.terminal_background[2])) +
+                        (238.0 - @as(f32, @floatFromInt(self.terminal_background[2]))) * edge_ratio)
+                else
+                    @intFromFloat(238.0 * scale);
                 try buf.print("\x1b[48;2;{d};{d};{d}m\x1b[97m", .{ red, green, blue });
             } else {
                 // SGR default background keeps the terminal's own background color.
@@ -150,6 +176,21 @@ const Model = struct {
         return tui.View.init(try buf.toOwnedSlice());
     }
 };
+
+
+
+const initial_cmds = [_]tui.Cmd{
+    .{ .task = requestTerminalBackground },
+    .{ .tick = .{ .duration_ms = 24, .tag = 0 } },
+};
+
+fn requestTerminalBackground() ?tui.Msg {
+    if (comptime builtin.os.tag != .windows) {
+        const query = "\x1b]11;?\x1b\\";
+        _ = std.posix.system.write(1, query.ptr, query.len);
+    }
+    return null;
+}
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
