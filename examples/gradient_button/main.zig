@@ -66,7 +66,7 @@ const Model = struct {
             },
             .tick => {
                 switch (self.mode) {
-                    .idle => return tui.tick(24, 0),
+                    .idle => return tui.none(),
                     .fade_in => {
                         self.progress = @min(1, self.progress + 0.055);
                         if (self.progress >= 1) {
