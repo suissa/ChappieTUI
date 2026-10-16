@@ -68,7 +68,8 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_tests.step);
-    test_step.dependOn(&run_maestro_tests.step);\n    test_step.dependOn(&run_components_tests.step);
+    test_step.dependOn(&run_maestro_tests.step);
+    test_step.dependOn(&run_components_tests.step);
     test_step.dependOn(&run_lipgloss_tests.step);
 
     // Examples
@@ -102,7 +103,8 @@ pub fn build(b: *std.Build) void {
         });
         ex_mod.addImport("tui", mod);
         ex_mod.addImport("lipgloss", lipgloss_mod);
-        ex_mod.addImport("maestro", maestro_mod);\n        ex_mod.addImport("components", components_mod);
+        ex_mod.addImport("maestro", maestro_mod);
+        ex_mod.addImport("components", components_mod);
 
         const exe = b.addExecutable(.{
             .name = ex.name,
