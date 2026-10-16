@@ -11,6 +11,14 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // Reusable terminal component models
+    const components_mod = b.addModule("components", .{
+        .root_source_file = b.path("components/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    mod.addImport("components", components_mod);
+
     // Canonical Maestro orchestration package
     const maestro_mod = b.addModule("maestro", .{
         .root_source_file = b.path("packages/maestro-tui.zig"),
@@ -47,6 +55,9 @@ pub fn build(b: *std.Build) void {
     });
     const run_tests = b.addRunArtifact(tests);
 
+    const components_tests = b.addTest(.{ .root_module = components_mod });
+    const run_components_tests = b.addRunArtifact(components_tests);
+
     const maestro_tests = b.addTest(.{ .root_module = maestro_mod });
     const run_maestro_tests = b.addRunArtifact(maestro_tests);
 
@@ -57,7 +68,7 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_tests.step);
-    test_step.dependOn(&run_maestro_tests.step);
+    test_step.dependOn(&run_maestro_tests.step);\n    test_step.dependOn(&run_components_tests.step);
     test_step.dependOn(&run_lipgloss_tests.step);
 
     // Examples
@@ -91,7 +102,7 @@ pub fn build(b: *std.Build) void {
         });
         ex_mod.addImport("tui", mod);
         ex_mod.addImport("lipgloss", lipgloss_mod);
-        ex_mod.addImport("maestro", maestro_mod);
+        ex_mod.addImport("maestro", maestro_mod);\n        ex_mod.addImport("components", components_mod);
 
         const exe = b.addExecutable(.{
             .name = ex.name,
