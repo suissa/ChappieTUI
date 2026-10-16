@@ -9,7 +9,7 @@ const motions = [_]motion.Motion{
 };
 
 const Model = struct {
-    orchestrator: motion.Orchestrator = .{},
+    orchestrator: motion.Orchestrator = .{ .motion = .slide_in_right, .phase = .entering, .duration_ms = 900 },
     selected: usize = 0,
     elapsed_ms: u64 = 0,
     duration_ms: u64 = 900,
