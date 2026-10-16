@@ -125,7 +125,7 @@ zig build test
 
 # Exemplos interativos
 zig build run-dashboard          # System Dashboard completo com métricas
-zig build run-progress-animated  # Barra de progresso animada com gradiente
+zig build run-progress-animated  # Barra de progresso animada com gradiente\nzig build run-gradient-button    # Botão com FadeIn/FadeOut por gradiente e controle via scroll
 zig build run-lipgloss-gallery   # Galeria de estilos Lipgloss
 zig build run-lipgloss-table     # Tabelas estilizadas
 zig build run-lipgloss-tree      # Árvores hierárquicas
@@ -135,6 +135,19 @@ zig build run-textinput          # Campo de texto interativo
 zig build run-mouse              # Captura e rastreamento de eventos de mouse
 zig build run-fullscreen         # Aplicação em tela cheia (AltScreen)
 ```
+
+
+## Botão com FadeIn/FadeOut por gradiente
+
+Execute `zig build run-gradient-button` para abrir um exemplo interativo de botão. O fundo começa usando a cor padrão do terminal; no FadeIn, o preenchimento colorido nasce no centro e se expande para as duas laterais. O FadeOut recolhe o gradiente das bordas em direção ao centro.
+
+- `i` ou seta para cima: FadeIn animado.
+- `o` ou seta para baixo: FadeOut animado.
+- Roda do mouse para cima/baixo: controla diretamente o progresso da animação (scrubbing).
+- Clique do mouse: ativa o botão quando totalmente revelado ou inicia o FadeIn.
+- `q` ou `Ctrl+C`: sair.
+
+A animação usa frames da arquitetura de mensagens da ChappieTUI e sequências ANSI TrueColor; não depende de um timer externo nem de um renderer de navegador.
 
 ---
 
