@@ -139,10 +139,10 @@ const Model = struct {
         try buf.writeAll(help);
         try buf.writeByte('\n');
 
-        var view = tui.View.init(try buf.toOwnedSlice());
-        view.alt_screen = true;
-        view.mouse_mode = .all_motion;
-        return view;
+        var rendered_view = tui.View.init(try buf.toOwnedSlice());
+        rendered_view.alt_screen = true;
+        rendered_view.mouse_mode = .all_motion;
+        return rendered_view;
     }
 };
 
