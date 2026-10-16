@@ -1,3 +1,4 @@
-//! Component module entry point. Implementations live in components/root.zig.
+//! Text component entry point.
 const catalog = @import("root.zig");
-pub const Badge = catalog.Badge;
+pub const Text = catalog.Text;
+pub const Tone = catalog.Tone;
