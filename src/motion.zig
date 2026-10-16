@@ -103,7 +103,7 @@ pub const Orchestrator = struct {
     /// Scroll can scrub a motion deterministically instead of waiting for a timer.
     pub fn scrub(self: *Orchestrator, progress: f32) void {
         const clamped = std.math.clamp(progress, 0.0, 1.0);
-        self.elapsed_ms = @intFromFloat(@as(f64, @floatFromInt(self.duration_ms)) * clamped);
+        self.elapsed_ms = @intFromFloat(@as(f64, @floatFromInt(self.duration_ms)) * @as(f64, clamped));
         self.phase = if (clamped >= 1.0) .finished else .entering;
     }
 
