@@ -433,3 +433,108 @@ test "scroll scrub clamps progress" {
     try std.testing.expectEqual(Phase.finished, maestro.phase);
     try std.testing.expectEqual(@as(f32, 1.0), maestro.progress());
 }
+
+
+// Easing catalog ported from the TUI.zig animation system.
+pub const EasingFunctions = struct {
+    pub fn linear(t: f32) f32 { return t; }
+    pub fn easeIn(t: f32) f32 { return t * t; }
+    pub fn easeOut(t: f32) f32 { return 1.0 - (1.0 - t) * (1.0 - t); }
+    pub fn easeInOut(t: f32) f32 { return if (t < 0.5) 2.0 * t * t else 1.0 - std.math.pow(f32, -2.0 * t + 2.0, 2) / 2.0; }
+    pub fn easeInCubic(t: f32) f32 { return t * t * t; }
+    pub fn easeOutCubic(t: f32) f32 { return 1.0 - std.math.pow(f32, 1.0 - t, 3); }
+    pub fn easeInOutCubic(t: f32) f32 { return if (t < 0.5) 4.0 * t * t * t else 1.0 - std.math.pow(f32, -2.0 * t + 2.0, 3) / 2.0; }
+    pub fn easeInSine(t: f32) f32 { return 1.0 - @cos((t * std.math.pi) / 2.0); }
+    pub fn easeOutSine(t: f32) f32 { return @sin((t * std.math.pi) / 2.0); }
+    pub fn easeInOutSine(t: f32) f32 { return -(@cos(std.math.pi * t) - 1.0) / 2.0; }
+    pub fn easeInQuart(t: f32) f32 { return t * t * t * t; }
+    pub fn easeOutQuart(t: f32) f32 { return 1.0 - std.math.pow(f32, 1.0 - t, 4); }
+    pub fn easeInOutQuart(t: f32) f32 { return if (t < 0.5) 8.0 * t * t * t * t else 1.0 - std.math.pow(f32, -2.0 * t + 2.0, 4) / 2.0; }
+    pub fn easeInQuint(t: f32) f32 { return t * t * t * t * t; }
+    pub fn easeOutQuint(t: f32) f32 { return 1.0 - std.math.pow(f32, 1.0 - t, 5); }
+    pub fn easeInOutQuint(t: f32) f32 { return if (t < 0.5) 16.0 * t * t * t * t * t else 1.0 - std.math.pow(f32, -2.0 * t + 2.0, 5) / 2.0; }
+    pub fn easeInExpo(t: f32) f32 { return if (t == 0.0) 0.0 else std.math.pow(f32, 2.0, 10.0 * t - 10.0); }
+    pub fn easeOutExpo(t: f32) f32 { return if (t == 1.0) 1.0 else 1.0 - std.math.pow(f32, 2.0, -10.0 * t); }
+    pub fn easeInOutExpo(t: f32) f32 { if (t == 0.0) return 0.0; if (t == 1.0) return 1.0; return if (t < 0.5) std.math.pow(f32, 2.0, 20.0 * t - 10.0) / 2.0 else (2.0 - std.math.pow(f32, 2.0, -20.0 * t + 10.0)) / 2.0; }
+    pub fn easeInCirc(t: f32) f32 { return 1.0 - @sqrt(1.0 - t * t); }
+    pub fn easeOutCirc(t: f32) f32 { const v = t - 1.0; return @sqrt(1.0 - v * v); }
+    pub fn easeInOutCirc(t: f32) f32 { return if (t < 0.5) (1.0 - @sqrt(1.0 - 4.0 * t * t)) / 2.0 else (@sqrt(1.0 - std.math.pow(f32, -2.0 * t + 2.0, 2)) + 1.0) / 2.0; }
+    pub fn easeInBack(t: f32) f32 { const c1: f32 = 1.70158; return (c1 + 1.0) * t * t * t - c1 * t * t; }
+    pub fn easeOutBack(t: f32) f32 { const c1: f32 = 1.70158; const v = t - 1.0; return 1.0 + (c1 + 1.0) * v * v * v + c1 * v * v; }
+    pub fn easeInOutBack(t: f32) f32 { const c1: f32 = 1.70158; const c2 = c1 * 1.525; return if (t < 0.5) (std.math.pow(f32, 2.0 * t, 2) * ((c2 + 1.0) * 2.0 * t - c2)) / 2.0 else (std.math.pow(f32, 2.0 * t - 2.0, 2) * ((c2 + 1.0) * (2.0 * t - 2.0) + c2) + 2.0) / 2.0; }
+    pub fn easeOutBounce(t: f32) f32 { const n: f32 = 7.5625; const d: f32 = 2.75; if (t < 1.0 / d) return n * t * t; if (t < 2.0 / d) { const v = t - 1.5 / d; return n * v * v + 0.75; } if (t < 2.5 / d) { const v = t - 2.25 / d; return n * v * v + 0.9375; } const v = t - 2.625 / d; return n * v * v + 0.984375; }
+    pub fn easeInBounce(t: f32) f32 { return 1.0 - easeOutBounce(1.0 - t); }
+    pub fn easeInOutBounce(t: f32) f32 { return if (t < 0.5) (1.0 - easeOutBounce(1.0 - 2.0 * t)) / 2.0 else (1.0 + easeOutBounce(2.0 * t - 1.0)) / 2.0; }
+};
+
+pub const EasingFn = *const fn (f32) f32;
+pub const AnimationState = enum { idle, running, paused, completed };
+
+/// Generic value animation with pause/resume, looping, alternate direction and easing.
+pub fn Animation(comptime T: type) type {
+    return struct {
+        start_value: T,
+        end_value: T,
+        duration_ms: u32,
+        easing: EasingFn = &EasingFunctions.linear,
+        progress: f32 = 0,
+        elapsed_ms: u32 = 0,
+        state: AnimationState = .idle,
+        loop_count: u32 = 1,
+        current_loop: u32 = 0,
+        alternate: bool = false,
+        on_complete: ?*const fn () void = null,
+
+        const Self = @This();
+
+        pub fn init(start_value: T, end_value: T, duration_ms: u32) Self {
+            return .{ .start_value = start_value, .end_value = end_value, .duration_ms = @max(duration_ms, 1) };
+        }
+        pub fn withEasing(self: Self, easing: EasingFn) Self { var copy = self; copy.easing = easing; return copy; }
+        pub fn loop(self: Self, count: u32) Self { var copy = self; copy.loop_count = count; return copy; }
+        pub fn loopForever(self: Self) Self { var copy = self; copy.loop_count = 0; return copy; }
+        pub fn withAlternate(self: Self) Self { var copy = self; copy.alternate = true; return copy; }
+        pub fn start(self: *Self) void { self.state = .running; self.elapsed_ms = 0; self.progress = 0; self.current_loop = 0; }
+        pub fn pause(self: *Self) void { if (self.state == .running) self.state = .paused; }
+        pub fn resumeAnimation(self: *Self) void { if (self.state == .paused) self.state = .running; }
+        pub fn reset(self: *Self) void { self.state = .idle; self.elapsed_ms = 0; self.progress = 0; self.current_loop = 0; }
+        pub fn update(self: *Self, delta_ms: u32) void {
+            if (self.state != .running) return;
+            self.elapsed_ms = @min(self.elapsed_ms +| delta_ms, self.duration_ms);
+            self.progress = @as(f32, @floatFromInt(self.elapsed_ms)) / @as(f32, @floatFromInt(self.duration_ms));
+            if (self.elapsed_ms < self.duration_ms) return;
+            self.current_loop += 1;
+            if (self.loop_count == 0 or self.current_loop < self.loop_count) {
+                self.elapsed_ms = 0;
+                self.progress = 0;
+                if (self.alternate) { const tmp = self.start_value; self.start_value = self.end_value; self.end_value = tmp; }
+            } else {
+                self.state = .completed;
+                if (self.on_complete) |callback| callback();
+            }
+        }
+        pub fn value(self: Self) T {
+            const p = self.easing(std.math.clamp(self.progress, 0.0, 1.0));
+            if (T == f32) return self.start_value + (self.end_value - self.start_value) * p;
+            if (T == f64) return self.start_value + (self.end_value - self.start_value) * @as(f64, p);
+            if (T == i32) return self.start_value + @as(i32, @intFromFloat(@as(f32, @floatFromInt(self.end_value - self.start_value)) * p));
+            if (T == i64) return self.start_value + @as(i64, @intFromFloat(@as(f32, @floatFromInt(self.end_value - self.start_value)) * p));
+            @compileError("Animation(T).value supports f32, f64, i32, and i64");
+        }
+    };
+}
+
+test "easing catalog has stable endpoints" {
+    try std.testing.expectEqual(@as(f32, 0), EasingFunctions.linear(0));
+    try std.testing.expectEqual(@as(f32, 1), EasingFunctions.easeOut(1));
+    try std.testing.expectEqual(@as(f32, 1), EasingFunctions.easeInOutCubic(1));
+}
+
+test "generic animation interpolates and completes" {
+    var animation = Animation(f32).init(0, 10, 100);
+    animation.start();
+    animation.update(50);
+    try std.testing.expectApproxEqAbs(@as(f32, 5), animation.value(), 0.001);
+    animation.update(50);
+    try std.testing.expectEqual(AnimationState.completed, animation.state);
+}
