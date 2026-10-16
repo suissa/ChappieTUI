@@ -117,13 +117,22 @@ pub const Orchestrator = struct {
     pub fn offset(self: Orchestrator, width: usize, height: usize) struct { x: i32, y: i32 } {
         const p = self.progress();
         const entering = self.motion.isEntering();
-        const amount = 1.0 - p;
-        const sign: f32 = if (entering) 1.0 else -1.0;
+        const amount = if (entering) 1.0 - p else p;
+        const sign: f32 = switch (self.motion) {
+            .slide_in_right, .slide_out_right => 1.0,
+            .slide_in_left, .slide_out_left => -1.0,
+            .slide_in_down, .slide_out_down => 1.0,
+            .slide_in_up, .slide_out_up => -1.0,
+        };
         return switch (self.motion) {
-            .slide_in_right, .slide_out_right => .{ .x = @intFromFloat(sign * amount * @as(f32, @floatFromInt(width))), .y = 0 },
-            .slide_in_left, .slide_out_left => .{ .x = -@as(i32, @intFromFloat(sign * amount * @as(f32, @floatFromInt(width)))), .y = 0 },
-            .slide_in_down, .slide_out_down => .{ .x = 0, .y = @intFromFloat(sign * amount * @as(f32, @floatFromInt(height))) },
-            .slide_in_up, .slide_out_up => .{ .x = 0, .y = -@as(i32, @intFromFloat(sign * amount * @as(f32, @floatFromInt(height)))) },
+            .slide_in_right, .slide_out_right, .slide_in_left, .slide_out_left => .{
+                .x = @intFromFloat(sign * amount * @as(f32, @floatFromInt(width))),
+                .y = 0,
+            },
+            .slide_in_down, .slide_out_down, .slide_in_up, .slide_out_up => .{
+                .x = 0,
+                .y = @intFromFloat(sign * amount * @as(f32, @floatFromInt(height))),
+            },
         };
     }
 };
