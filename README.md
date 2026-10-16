@@ -139,6 +139,23 @@ zig build run-fullscreen         # Aplicação em tela cheia (AltScreen)
 
 ---
 
+## 🎞️ Slide Motion Maestro
+
+O runtime `tui.motion` fornece uma orquestração independente de widgets com fases `idle`, `entering`, `waiting`, `exiting` e `finished`. A implementação oferece:
+
+- `slideInRight`, `slideInLeft`, `slideInUp`, `slideInDown`
+- `slideOutRight`, `slideOutLeft`, `slideOutUp`, `slideOutDown`
+- duração em milissegundos, avanço por frames, sequências com espera e controle de progresso via `scrub()`
+- exemplo com botão Lipgloss, sequência temporizada e acionamento pela roda do mouse
+
+Execute:
+
+```bash
+zig build run-slide-motion
+```
+
+Controles do exemplo: `m` alterna entre sequência temporizada e modo acionado por rolagem; `+`/`-` ajustam a duração; `n` avança a animação; a roda do mouse dispara a próxima animação; `q` encerra.
+
 ## 📄 Licença
 
 Distribuído sob a licença **MIT**. Veja `LICENSE` para mais informações.
