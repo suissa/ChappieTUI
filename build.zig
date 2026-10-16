@@ -66,6 +66,7 @@ pub fn build(b: *std.Build) void {
         .{ .name = "example-lipgloss-layout", .path = "examples/lipgloss_layout/main.zig", .step_name = "run-lipgloss-layout" },
         .{ .name = "example-progress", .path = "examples/progress/main.zig", .step_name = "run-progress" },
         .{ .name = "example-progress-animated", .path = "examples/progress_animated/main.zig", .step_name = "run-progress-animated" },
+        .{ .name = "example-slide-motion", .path = "examples/slide_motion/main.zig", .step_name = "run-slide-motion" },
         .{ .name = "render-progress-frames", .path = "tools/render_progress_frames.zig", .step_name = null },
     };
 
