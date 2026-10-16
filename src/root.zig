@@ -63,7 +63,7 @@ pub const color = @import("color.zig");
 pub const Profile = color.Profile;
 
 pub const motion = @import("motion.zig");
-pub const maestro = @import("maestro");
+pub const maestro = @import("maestro");\npub const components = @import("components");
 pub const Maestro = maestro.Maestro;
 pub const Animation = maestro.Animation;
 pub const EasingFunctions = maestro.EasingFunctions;
