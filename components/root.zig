@@ -21,14 +21,19 @@ pub const RadioOption = struct { label: []const u8, value: []const u8, disabled:
 pub const RadioGroup = struct { options: []const RadioOption, selected: usize = 0, pub fn select(self: *RadioGroup, index: usize) void { if (index < self.options.len and !self.options[index].disabled) self.selected = index; } };
 pub const Progress = struct { value: f32 = 0, max: f32 = 100, label: []const u8 = "", pub fn ratio(self: Progress) f32 { if (self.max <= 0) return 0; return @max(0, @min(1, self.value / self.max)); } };
 pub const Spinner = struct { frames: []const []const u8 = &.{ "|", "/", "-", "\\" }, frame: usize = 0, pub fn advance(self: *Spinner) void { if (self.frames.len > 0) self.frame = (self.frame + 1) % self.frames.len; } pub fn current(self: Spinner) []const u8 { if (self.frames.len == 0) return ""; return self.frames[self.frame % self.frames.len]; } };
-pub const Tabs = struct { labels: []const []const u8, selected: usize = 0, pub fn select(self: *Tabs, index: usize) void { if (index < self.labels.len) self.selected = index; }, pub fn next(self: *Tabs) void { if (self.labels.len > 0) self.selected = (self.selected + 1) % self.labels.len; } };
+pub const Tabs = struct { labels: []const []const u8, selected: usize = 0, pub fn select(self: *Tabs, index: usize) void { if (index < self.labels.len) self.selected = index; }
+    pub fn next(self: *Tabs) void { if (self.labels.len > 0) self.selected = (self.selected + 1) % self.labels.len; } };
 pub const Alert = struct { title: []const u8, message: []const u8, tone: Tone = .info, dismissible: bool = true, visible: bool = true, pub fn dismiss(self: *Alert) void { if (self.dismissible) self.visible = false; } };
 pub const Toast = struct { message: []const u8, tone: Tone = .info, visible: bool = true, pub fn dismiss(self: *Toast) void { self.visible = false; } };
-pub const Modal = struct { title: []const u8, body: []const u8, open: bool = false, pub fn show(self: *Modal) void { self.open = true; }, pub fn close(self: *Modal) void { self.open = false; } };
+pub const Modal = struct { title: []const u8, body: []const u8, open: bool = false, pub fn show(self: *Modal) void { self.open = true; }
+    pub fn close(self: *Modal) void { self.open = false; } };
 pub const AccordionItem = struct { title: []const u8, body: []const u8, expanded: bool = false };
 pub const Accordion = struct { items: []AccordionItem, single_open: bool = true, pub fn toggle(self: *Accordion, index: usize) void { if (index >= self.items.len) return; const next = !self.items[index].expanded; if (self.single_open) for (self.items) |*item| { item.expanded = false; }; self.items[index].expanded = next; } };
-pub const Slider = struct { value: i32 = 0, min: i32 = 0, max: i32 = 100, step: i32 = 1, pub fn set(self: *Slider, value: i32) void { self.value = @max(self.min, @min(self.max, value)); }, pub fn increment(self: *Slider) void { self.set(self.value + @max(1, self.step)); }, pub fn decrement(self: *Slider) void { self.set(self.value - @max(1, self.step)); } };
-pub const Pagination = struct { page: usize = 0, page_count: usize = 1, pub fn next(self: *Pagination) void { if (self.page + 1 < self.page_count) self.page += 1; }, pub fn previous(self: *Pagination) void { if (self.page > 0) self.page -= 1; } };
+pub const Slider = struct { value: i32 = 0, min: i32 = 0, max: i32 = 100, step: i32 = 1, pub fn set(self: *Slider, value: i32) void { self.value = @max(self.min, @min(self.max, value)); }
+    pub fn increment(self: *Slider) void { self.set(self.value + @max(1, self.step)); }
+    pub fn decrement(self: *Slider) void { self.set(self.value - @max(1, self.step)); } };
+pub const Pagination = struct { page: usize = 0, page_count: usize = 1, pub fn next(self: *Pagination) void { if (self.page + 1 < self.page_count) self.page += 1; }
+    pub fn previous(self: *Pagination) void { if (self.page > 0) self.page -= 1; } };
 pub const Breadcrumb = struct { items: []const []const u8, current: usize = 0 };
 pub const MenuItem = struct { label: []const u8, enabled: bool = true };
 pub const Menu = struct { items: []const MenuItem, selected: usize = 0, pub fn move(self: *Menu, delta: isize) void { if (self.items.len == 0) return; const len: isize = @intCast(self.items.len); self.selected = @intCast(@mod(@as(isize, @intCast(self.selected)) + delta, len)); } };
