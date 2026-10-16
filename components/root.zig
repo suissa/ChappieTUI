@@ -2,6 +2,8 @@
 //! These primitives are renderer-agnostic and can be composed in Elm-style Model/update/view flows.
 
 pub const Badge = struct { label: []const u8, tone: Tone = .neutral };
+pub const Text = struct { value: []const u8, tone: Tone = .neutral, bold: bool = false, dim: bool = false };
+pub const WidgetState = struct { visible: bool = true, enabled: bool = true, focused: bool = false, hovered: bool = false, dirty: bool = true };
 pub const Tone = enum { neutral, primary, success, warning, danger, info };
 
 pub const Button = struct {
