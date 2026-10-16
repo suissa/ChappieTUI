@@ -159,3 +159,34 @@ Controles do exemplo: `m` alterna entre sequência temporizada e modo acionado p
 ## 📄 Licença
 
 Distribuído sob a licença **MIT**. Veja `LICENSE` para mais informações.
+
+## Maestro Animation Runtime
+
+O runtime central está em `packages/maestro-tui.zig` e é exportado como `tui.maestro`. Ele inclui orquestração de slides, fases de ciclo de vida, sequências, duração/atraso/espera, easing, redução de movimento, controle de progresso por scroll (`scrub`) e animação genérica de valores com pause/resume, loops e alternância.
+
+```zig
+const maestro = @import("maestro");
+
+var timeline = maestro.Maestro{};
+timeline.startSequence(.slide_in_right, 300, 800);
+timeline.advance(16);
+const frame = timeline.snapshot(80, 24);
+
+var fade = maestro.Animation(f32).init(0, 1, 250)
+    .withEasing(&maestro.EasingFunctions.easeInOut);
+fade.start();
+fade.update(16);
+const opacity = fade.value();
+```
+
+## Componentes
+
+`components/root.zig` disponibiliza modelos reutilizáveis e independentes do renderer para Button, Badge, Card, Checkbox, Switch, RadioGroup, Progress, Spinner, Tabs, Alert, Toast, Modal, Accordion, Slider, Pagination, Breadcrumb, Menu, Navbar, Sidebar, StatusBar, ScrollView, SplitView, Grid, TreeNode, TextInput, TextArea, Tooltip, Skeleton, Separator, Image, Border, ListView e Table.
+
+O exemplo interativo que combina os componentes com o Maestro fica em `examples/dashboard.zig`:
+
+```bash
+zig build run-dashboard-file
+```
+
+A suíte `zig build test` também executa os testes do pacote Maestro e dos componentes com Zig 0.16.
