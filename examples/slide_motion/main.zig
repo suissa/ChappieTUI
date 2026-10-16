@@ -58,8 +58,8 @@ const Model = struct {
                 }
             },
             .window_size => |size| {
-                self.width = @max(20, size.width);
-                self.height = @max(8, size.height);
+                self.width = @max(@as(usize, 20), @as(usize, size.width));
+                self.height = @max(@as(usize, 8), @as(usize, size.height));
             },
             .tick => {
                 if (!self.scroll_mode) {
@@ -120,10 +120,10 @@ const Model = struct {
         try buf.writeAll("\n\n");
 
         const displacement = self.orchestrator.offset(self.width / 2, self.height / 2);
-        if (displacement.y > 0) {
-            const rows: usize = @intCast(@min(displacement.y, @as(i32, @intCast(self.height))));
-            for (0..rows) |_| try buf.writeByte('\n');
-        }
+        const base_y: i32 = 5;
+        const row_position = @max(0, base_y + displacement.y);
+        const rows: usize = @intCast(@min(row_position, @as(i32, @intCast(self.height))));
+        for (0..rows) |_| try buf.writeByte('\n');
         if (displacement.x > 0) {
             const spaces: usize = @intCast(@min(displacement.x, @as(i32, @intCast(self.width))));
             for (0..spaces) |_| try buf.writeByte(' ');
@@ -134,10 +134,6 @@ const Model = struct {
         }
         if (self.orchestrator.phase != .finished or motions[self.selected].isEntering()) {
             try buf.writeAll(button);
-        }
-        if (displacement.y < 0) {
-            const rows: usize = @intCast(@min(-displacement.y, @as(i32, @intCast(self.height))));
-            for (0..rows) |_| try buf.writeByte('\n');
         }
         try buf.writeAll("\n\n");
         try buf.writeAll(help);
