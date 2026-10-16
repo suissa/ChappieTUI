@@ -153,7 +153,7 @@ const Model = struct {
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
-    const options = tui.Options.init().withMouseCellMotion().withFPS(60).withWindowTitle("ChappieTUI Gradient Button");
+    const options = (tui.Options{}).withMouseCellMotion().withFPS(60).withWindowTitle("ChappieTUI Gradient Button");
     var program = tui.Program(Model).initWithOptions(allocator, .{}, options);
     defer program.deinit();
     _ = try program.run();
