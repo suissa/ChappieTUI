@@ -1,5 +1,3 @@
-//! Component module entry point. Implementations live in components/root.zig.
+//! Shared widget state used by component adapters.
 const catalog = @import("root.zig");
-pub const Button = catalog.Button;
-pub const Card = catalog.Card;
-pub const Progress = catalog.Progress;
+pub const WidgetState = catalog.WidgetState;
