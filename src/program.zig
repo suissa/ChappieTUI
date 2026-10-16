@@ -46,8 +46,8 @@ fn parseOsc11Background(input: []const u8) ?Osc11Response {
         const max_value: u32 = (@as(u32, 1) << @intCast(part.len * 4)) - 1;
         rgb[i] = @intCast((@as(u32, value) * 255 + max_value / 2) / max_value);
     }
-    const packed: usize = (@as(usize, rgb[0]) << 16) | (@as(usize, rgb[1]) << 8) | rgb[2];
-    return .{ .consumed = end + terminator_len, .rgb = packed };
+    const packed_rgb: usize = (@as(usize, rgb[0]) << 16) | (@as(usize, rgb[1]) << 8) | rgb[2];
+    return .{ .consumed = end + terminator_len, .rgb = packed_rgb };
 }
 
 // Platform time & sleep
