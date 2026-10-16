@@ -11,6 +11,14 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // Canonical Maestro orchestration package
+    const maestro_mod = b.addModule("maestro", .{
+        .root_source_file = b.path("packages/maestro-tui.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    mod.addImport("maestro", maestro_mod);
+
     // Lipgloss submodule
     const lipgloss_mod = b.addModule("lipgloss", .{
         .root_source_file = b.path("libs/lipgloss/src/root.zig"),
@@ -39,6 +47,9 @@ pub fn build(b: *std.Build) void {
     });
     const run_tests = b.addRunArtifact(tests);
 
+    const maestro_tests = b.addTest(.{ .root_module = maestro_mod });
+    const run_maestro_tests = b.addRunArtifact(maestro_tests);
+
     const lipgloss_tests = b.addTest(.{
         .root_module = lipgloss_mod,
     });
@@ -46,6 +57,7 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_tests.step);
+    test_step.dependOn(&run_maestro_tests.step);
     test_step.dependOn(&run_lipgloss_tests.step);
 
     // Examples
@@ -56,6 +68,7 @@ pub fn build(b: *std.Build) void {
         .{ .name = "example-tabs", .path = "examples/tabs/main.zig", .step_name = "run-tabs" },
         .{ .name = "example-table", .path = "examples/table/main.zig", .step_name = "run-table" },
         .{ .name = "example-dashboard", .path = "examples/dashboard/main.zig", .step_name = "run-dashboard" },
+        .{ .name = "example-dashboard-file", .path = "examples/dashboard.zig", .step_name = "run-dashboard-file" },
         .{ .name = "example-mouse", .path = "examples/mouse/main.zig", .step_name = "run-mouse" },
         .{ .name = "example-fullscreen", .path = "examples/fullscreen/main.zig", .step_name = "run-fullscreen" },
         .{ .name = "example-spinner", .path = "examples/spinner/main.zig", .step_name = "run-spinner" },
@@ -78,6 +91,7 @@ pub fn build(b: *std.Build) void {
         });
         ex_mod.addImport("tui", mod);
         ex_mod.addImport("lipgloss", lipgloss_mod);
+        ex_mod.addImport("maestro", maestro_mod);
 
         const exe = b.addExecutable(.{
             .name = ex.name,
