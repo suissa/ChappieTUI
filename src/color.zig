@@ -8,28 +8,14 @@ pub const Profile = enum {
     truecolor,
 
     pub fn detect() Profile {
-        if (builtin.os.tag == .windows) {
-            // Modern Windows 10/11 console supports 24-bit TrueColor
+        if (builtin.os.tag == .windows or builtin.os.tag == .macos) {
+            // Modern Windows and macOS terminals support 24-bit TrueColor.
             return .truecolor;
         }
 
-        // On POSIX check COLORTERM and TERM
-        if (std.posix.getenv("COLORTERM")) |ct| {
-            if (std.mem.eql(u8, ct, "truecolor") or std.mem.eql(u8, ct, "24bit")) {
-                return .truecolor;
-            }
-        }
-
-        if (std.posix.getenv("TERM")) |term| {
-            if (std.mem.indexOf(u8, term, "256color") != null) {
-                return .ansi256;
-            }
-            if (std.mem.eql(u8, term, "dumb")) {
-                return .ascii;
-            }
-            return .ansi;
-        }
-
+        // Environment access became explicit in Zig 0.16. Keep this zero-context
+        // helper conservative and portable; callers that need environment-aware
+        // detection can provide that policy at the application boundary.
         return .ansi256;
     }
 };
