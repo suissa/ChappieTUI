@@ -13,6 +13,43 @@ const clipboard = @import("clipboard.zig");
 const paste = @import("paste.zig");
 const focus = @import("focus.zig");
 
+
+
+const Osc11Response = struct { consumed: usize, rgb: usize };
+
+fn parseOsc11Background(input: []const u8) ?Osc11Response {
+    const bell = std.mem.indexOfScalar(u8, input, 7);
+    const st = std.mem.indexOf(u8, input, "\x1b\\");
+    var end: usize = undefined;
+    var terminator_len: usize = undefined;
+    if (bell) |i| {
+        end = i;
+        terminator_len = 1;
+    } else if (st) |i| {
+        end = i;
+        terminator_len = 2;
+    } else return null;
+
+    const prefix = "\x1b]11;";
+    if (!std.mem.startsWith(u8, input, prefix) or end <= prefix.len) return null;
+    const payload = input[prefix.len..end];
+    if (!std.mem.startsWith(u8, payload, "rgb:")) return null;
+    const channels = payload[4..];
+    const first = std.mem.indexOfScalar(u8, channels, '/') orelse return null;
+    const rest = channels[first + 1 ..];
+    const second = std.mem.indexOfScalar(u8, rest, '/') orelse return null;
+    const parts = [_][]const u8{ channels[0..first], rest[0..second], rest[second + 1 ..] };
+    var rgb: [3]u8 = undefined;
+    for (parts, 0..) |part, i| {
+        if (part.len == 0 or part.len > 4) return null;
+        const value = std.fmt.parseInt(u16, part, 16) catch return null;
+        const max_value: u32 = (@as(u32, 1) << @intCast(part.len * 4)) - 1;
+        rgb[i] = @intCast((@as(u32, value) * 255 + max_value / 2) / max_value);
+    }
+    const packed: usize = (@as(usize, rgb[0]) << 16) | (@as(usize, rgb[1]) << 8) | rgb[2];
+    return .{ .consumed = end + terminator_len, .rgb = packed };
+}
+
 // Platform time & sleep
 extern "kernel32" fn Sleep(dwMilliseconds: u32) callconv(.winapi) void;
 extern "kernel32" fn GetTickCount64() callconv(.winapi) u64;
@@ -317,6 +354,19 @@ pub fn Program(comptime ModelType: type) type {
                     var offset: usize = 0;
                     while (offset < n) {
                         const slice = buf[offset..n];
+
+                        // OSC 11 terminal background-color response. Unsupported or malformed
+                        // replies are ignored, preserving the terminal-default fallback.
+                        if (std.mem.startsWith(u8, slice, "\x1b]11;")) {
+                            if (parseOsc11Background(slice)) |response| {
+                                self.pushMsg(.{ .custom = .{ .id = 0xB011, .data = response.rgb } });
+                                offset += response.consumed;
+                            } else {
+                                // Never leak a partial OSC reply into ordinary key handling.
+                                offset = n;
+                            }
+                            continue;
+                        }
 
                         // Focus reporting (\x1b[I = focus, \x1b[O = blur)
                         if (std.mem.startsWith(u8, slice, "\x1b[I")) {
