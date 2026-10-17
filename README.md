@@ -34,7 +34,7 @@ Inclui o submódulo integrado **Lipgloss** para estilização com TrueColor (RGB
     .version = "0.1.0",
     .dependencies = .{
         .tui = .{
-            .url = "https://github.com/suissadev/ChappieTUI/archive/main.tar.gz",
+            .url = "https://github.com/suissa/ChappieTUI/archive/main.tar.gz",
             // .hash = "...",
         },
     },
@@ -125,7 +125,8 @@ zig build test
 
 # Exemplos interativos
 zig build run-dashboard          # System Dashboard completo com métricas
-zig build run-progress-animated  # Barra de progresso animada com gradiente\nzig build run-gradient-button    # Botão com FadeIn/FadeOut por gradiente e controle via scroll
+zig build run-progress-animated  # Barra de progresso animada com gradiente
+zig build run-slide-motion       # SlideIn/SlideOut com duração e rolagem do terminal
 zig build run-lipgloss-gallery   # Galeria de estilos Lipgloss
 zig build run-lipgloss-table     # Tabelas estilizadas
 zig build run-lipgloss-tree      # Árvores hierárquicas
@@ -151,6 +152,54 @@ A animação usa frames da arquitetura de mensagens da ChappieTUI e sequências 
 
 ---
 
+## 🎞️ Slide Motion Maestro
+
+O runtime `tui.motion` fornece uma orquestração independente de widgets com fases `idle`, `entering`, `waiting`, `exiting` e `finished`. A implementação oferece:
+
+- `slideInRight`, `slideInLeft`, `slideInUp`, `slideInDown`
+- `slideOutRight`, `slideOutLeft`, `slideOutUp`, `slideOutDown`
+- duração em milissegundos, avanço por frames, sequências com espera e controle de progresso via `scrub()`
+- exemplo com botão Lipgloss, sequência temporizada e acionamento pela roda do mouse
+
+Execute:
+
+```bash
+zig build run-slide-motion
+```
+
+Controles do exemplo: `m` alterna entre sequência temporizada e modo acionado por rolagem; `+`/`-` ajustam a duração; `n` avança a animação; a roda do mouse dispara a próxima animação; `q` encerra.
+
 ## 📄 Licença
 
 Distribuído sob a licença **MIT**. Veja `LICENSE` para mais informações.
+
+## Maestro Animation Runtime
+
+O runtime central está em `packages/maestro-tui.zig` e é exportado como `tui.maestro`. Ele inclui orquestração de slides, fases de ciclo de vida, sequências, duração/atraso/espera, easing, redução de movimento, controle de progresso por scroll (`scrub`) e animação genérica de valores com pause/resume, loops e alternância.
+
+```zig
+const maestro = @import("maestro");
+
+var timeline = maestro.Maestro{};
+timeline.startSequence(.slide_in_right, 300, 800);
+timeline.advance(16);
+const frame = timeline.snapshot(80, 24);
+
+var fade = maestro.Animation(f32).init(0, 1, 250)
+    .withEasing(&maestro.EasingFunctions.easeInOut);
+fade.start();
+fade.update(16);
+const opacity = fade.value();
+```
+
+## Componentes
+
+`components/root.zig` disponibiliza modelos reutilizáveis e independentes do renderer para Button, Badge, Card, Checkbox, Switch, RadioGroup, Progress, Spinner, Tabs, Alert, Toast, Modal, Accordion, Slider, Pagination, Breadcrumb, Menu, Navbar, Sidebar, StatusBar, ScrollView, SplitView, Grid, TreeNode, TextInput, TextArea, Tooltip, Skeleton, Separator, Image, Border, ListView e Table.
+
+O exemplo interativo que combina os componentes com o Maestro fica em `examples/dashboard.zig`:
+
+```bash
+zig build run-dashboard-file
+```
+
+A suíte `zig build test` também executa os testes do pacote Maestro e dos componentes com Zig 0.16.

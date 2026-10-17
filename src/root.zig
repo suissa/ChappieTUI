@@ -62,6 +62,16 @@ pub const focus = @import("focus.zig");
 pub const color = @import("color.zig");
 pub const Profile = color.Profile;
 
+pub const motion = @import("motion.zig");
+pub const maestro = @import("maestro");
+pub const components = @import("components");
+pub const Maestro = maestro.Maestro;
+pub const Animation = maestro.Animation;
+pub const EasingFunctions = maestro.EasingFunctions;
+pub const Motion = motion.Motion;
+pub const MotionOrchestrator = motion.Orchestrator;
+pub const MotionPhase = motion.Phase;
+
 pub const logging = @import("logging.zig");
 pub const Logger = logging.Logger;
 pub const logToFile = logging.logToFile;

@@ -11,6 +11,22 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // Reusable terminal component models
+    const components_mod = b.addModule("components", .{
+        .root_source_file = b.path("components/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    mod.addImport("components", components_mod);
+
+    // Canonical Maestro orchestration package
+    const maestro_mod = b.addModule("maestro", .{
+        .root_source_file = b.path("packages/maestro-tui.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    mod.addImport("maestro", maestro_mod);
+
     // Lipgloss submodule
     const lipgloss_mod = b.addModule("lipgloss", .{
         .root_source_file = b.path("libs/lipgloss/src/root.zig"),
@@ -39,6 +55,12 @@ pub fn build(b: *std.Build) void {
     });
     const run_tests = b.addRunArtifact(tests);
 
+    const components_tests = b.addTest(.{ .root_module = components_mod });
+    const run_components_tests = b.addRunArtifact(components_tests);
+
+    const maestro_tests = b.addTest(.{ .root_module = maestro_mod });
+    const run_maestro_tests = b.addRunArtifact(maestro_tests);
+
     const lipgloss_tests = b.addTest(.{
         .root_module = lipgloss_mod,
     });
@@ -46,6 +68,8 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_tests.step);
+    test_step.dependOn(&run_maestro_tests.step);
+    test_step.dependOn(&run_components_tests.step);
     test_step.dependOn(&run_lipgloss_tests.step);
 
     // Examples
@@ -56,6 +80,7 @@ pub fn build(b: *std.Build) void {
         .{ .name = "example-tabs", .path = "examples/tabs/main.zig", .step_name = "run-tabs" },
         .{ .name = "example-table", .path = "examples/table/main.zig", .step_name = "run-table" },
         .{ .name = "example-dashboard", .path = "examples/dashboard/main.zig", .step_name = "run-dashboard" },
+        .{ .name = "example-dashboard-file", .path = "examples/dashboard.zig", .step_name = "run-dashboard-file" },
         .{ .name = "example-mouse", .path = "examples/mouse/main.zig", .step_name = "run-mouse" },
         .{ .name = "example-fullscreen", .path = "examples/fullscreen/main.zig", .step_name = "run-fullscreen" },
         .{ .name = "example-spinner", .path = "examples/spinner/main.zig", .step_name = "run-spinner" },
@@ -66,7 +91,7 @@ pub fn build(b: *std.Build) void {
         .{ .name = "example-lipgloss-layout", .path = "examples/lipgloss_layout/main.zig", .step_name = "run-lipgloss-layout" },
         .{ .name = "example-progress", .path = "examples/progress/main.zig", .step_name = "run-progress" },
         .{ .name = "example-progress-animated", .path = "examples/progress_animated/main.zig", .step_name = "run-progress-animated" },
-        .{ .name = "example-gradient-button", .path = "examples/gradient_button/main.zig", .step_name = "run-gradient-button" },
+        .{ .name = "example-slide-motion", .path = "examples/slide_motion/main.zig", .step_name = "run-slide-motion" },
         .{ .name = "render-progress-frames", .path = "tools/render_progress_frames.zig", .step_name = null },
     };
 
@@ -78,6 +103,8 @@ pub fn build(b: *std.Build) void {
         });
         ex_mod.addImport("tui", mod);
         ex_mod.addImport("lipgloss", lipgloss_mod);
+        ex_mod.addImport("maestro", maestro_mod);
+        ex_mod.addImport("components", components_mod);
 
         const exe = b.addExecutable(.{
             .name = ex.name,

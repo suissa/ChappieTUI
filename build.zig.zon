@@ -8,5 +8,9 @@
         "build.zig",
         "build.zig.zon",
         "src",
+        "packages",
+        "components",
+        "examples",
+        "libs",
     },
 }
