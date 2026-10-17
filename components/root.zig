@@ -1,3 +1,6 @@
+//! ChappieTUI terminal component models.
+//! These primitives are renderer-agnostic and can be composed in Elm-style Model/update/view flows.
+
 const std = @import("std");
 const flex_layout = @import("flex.zig");
 pub const flex = flex_layout;
@@ -6,9 +9,6 @@ pub const FlexSizing = flex_layout.Sizing;
 pub const FlexItem = flex_layout.Item;
 pub const FlexPlacement = flex_layout.Placement;
 pub const flexLayout = flex_layout.layout;
-
-//! ChappieTUI terminal component models.
-//! These primitives are renderer-agnostic and can be composed in Elm-style Model/update/view flows.
 
 pub const Badge = struct { label: []const u8, tone: Tone = .neutral };
 pub const Text = struct { value: []const u8, tone: Tone = .neutral, bold: bool = false, dim: bool = false };
