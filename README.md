@@ -137,6 +137,19 @@ zig build run-mouse              # Captura e rastreamento de eventos de mouse
 zig build run-fullscreen         # Aplicação em tela cheia (AltScreen)
 ```
 
+
+## Botão com FadeIn/FadeOut por gradiente
+
+Execute `zig build run-gradient-button` para abrir um exemplo interativo de botão. O exemplo consulta a cor de fundo via OSC 11 quando o terminal oferece suporte e usa essa cor como origem do gradiente; se não houver resposta, mantém o fundo padrão do terminal como fallback. No FadeIn, o preenchimento colorido nasce no centro e se expande para as duas laterais. O FadeOut recolhe o gradiente das bordas em direção ao centro.
+
+- `i` ou seta para cima: FadeIn animado.
+- `o` ou seta para baixo: FadeOut animado.
+- Roda do mouse para cima/baixo: controla diretamente o progresso da animação (scrubbing).
+- Clique do mouse: ativa o botão quando totalmente revelado ou inicia o FadeIn.
+- `q` ou `Ctrl+C`: sair.
+
+A animação usa frames da arquitetura de mensagens da ChappieTUI e sequências ANSI TrueColor; não depende de um timer externo nem de um renderer de navegador. A consulta OSC 11 aceita respostas RGB em hexadecimal, inclusive respostas fragmentadas em múltiplas leituras. Terminais que não implementam essa consulta continuam funcionando com a cor de fundo padrão; no Windows, a consulta é ignorada e o fallback é usado.
+
 ---
 
 ## 🎞️ Slide Motion Maestro
