@@ -72,10 +72,11 @@ pub fn layout(
         if (total_weight == 0) break;
 
         const before = remaining;
+        const round_remaining = remaining;
         for (items, 0..) |item, index| {
             if (item.sizing != .flex or output[index].size >= item.max) continue;
             const weight: u64 = @max(1, item.sizing.flex);
-            const share: usize = @intCast((@as(u64, @intCast(remaining)) * weight) / total_weight);
+            const share: usize = @intCast((@as(u64, @intCast(round_remaining)) * weight) / total_weight);
             if (share == 0) continue;
             const room = item.max - output[index].size;
             const added = @min(room, @min(share, remaining));
@@ -112,9 +113,9 @@ test "flex distributes remaining cells by weight" {
     try layout(&items, 16, 1, &output);
     try std.testing.expectEqual(@as(usize, 0), output[0].offset);
     try std.testing.expectEqual(@as(usize, 4), output[0].size);
-    try std.testing.expectEqual(@as(usize, 5), output[1].size);
+    try std.testing.expectEqual(@as(usize, 4), output[1].size);
     try std.testing.expectEqual(@as(usize, 6), output[2].size);
-    try std.testing.expectEqual(@as(usize, 11), output[2].offset);
+    try std.testing.expectEqual(@as(usize, 10), output[2].offset);
 }
 
 test "flex respects minimum and maximum constraints" {
