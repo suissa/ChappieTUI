@@ -92,10 +92,10 @@ const Model = struct {
         });
         try buf.writeAll("\n  [↑/k] previous  [↓/j] next  [space/s] toggle service  [r] reset  [q] quit\n");
 
-        var view = tui.View.init(try buf.toOwnedSlice());
-        view.window_title = "ChappieTUI Maestro Dashboard";
-        view.alt_screen = true;
-        return view;
+        var rendered_view = tui.View.init(try buf.toOwnedSlice());
+        rendered_view.window_title = "ChappieTUI Maestro Dashboard";
+        rendered_view.alt_screen = true;
+        return rendered_view;
     }
 };
 
