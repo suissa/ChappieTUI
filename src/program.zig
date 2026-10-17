@@ -13,8 +13,6 @@ const clipboard = @import("clipboard.zig");
 const paste = @import("paste.zig");
 const focus = @import("focus.zig");
 
-
-
 const Osc11Response = struct { consumed: usize, rgb: usize };
 
 fn parseOsc11Background(input: []const u8) ?Osc11Response {
