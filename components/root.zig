@@ -1,3 +1,12 @@
+const std = @import("std");
+const flex_layout = @import("flex.zig");
+pub const flex = flex_layout;
+pub const FlexDirection = flex_layout.Direction;
+pub const FlexSizing = flex_layout.Sizing;
+pub const FlexItem = flex_layout.Item;
+pub const FlexPlacement = flex_layout.Placement;
+pub const flexLayout = flex_layout.layout;
+
 //! ChappieTUI terminal component models.
 //! These primitives are renderer-agnostic and can be composed in Elm-style Model/update/view flows.
 
