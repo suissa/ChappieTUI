@@ -65,8 +65,11 @@ pub fn layout(
     while (remaining > 0) {
         var total_weight: u64 = 0;
         for (items, 0..) |item, index| {
-            if (item.sizing == .flex and output[index].size < item.max) {
-                total_weight += @max(1, item.sizing.flex);
+            switch (item.sizing) {
+                .flex => |weight| {
+                    if (output[index].size < item.max) total_weight += @max(1, weight);
+                },
+                else => {},
             }
         }
         if (total_weight == 0) break;
@@ -74,8 +77,12 @@ pub fn layout(
         const before = remaining;
         const round_remaining = remaining;
         for (items, 0..) |item, index| {
-            if (item.sizing != .flex or output[index].size >= item.max) continue;
-            const weight: u64 = @max(1, item.sizing.flex);
+            const flex_weight: u32 = switch (item.sizing) {
+                .flex => |weight| weight,
+                else => continue,
+            };
+            if (output[index].size >= item.max) continue;
+            const weight: u64 = @max(1, flex_weight);
             const share: usize = @intCast((@as(u64, @intCast(round_remaining)) * weight) / total_weight);
             if (share == 0) continue;
             const room = item.max - output[index].size;
@@ -87,7 +94,11 @@ pub fn layout(
 
         if (remaining == before) {
             for (items, 0..) |item, index| {
-                if (item.sizing != .flex or output[index].size >= item.max) continue;
+                const is_flex = switch (item.sizing) {
+                    .flex => true,
+                    else => false,
+                };
+                if (!is_flex or output[index].size >= item.max) continue;
                 output[index].size += 1;
                 remaining -= 1;
                 if (remaining == 0) break;
