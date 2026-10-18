@@ -70,7 +70,7 @@ pub const ScrollView = struct {
             self.scrollTo(current +| @as(usize, @intCast(delta)));
         } else {
             // Avoid negating minInt(isize), which would overflow.
-            const amount: usize = @intCast(-(delta + 1)) + 1;
+            const amount: usize = @as(usize, @intCast(-(delta + 1))) + 1;
             self.scrollTo(current -| amount);
         }
     }
