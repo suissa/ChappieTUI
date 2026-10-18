@@ -81,6 +81,7 @@ pub fn build(b: *std.Build) void {
         .{ .name = "example-table", .path = "examples/table/main.zig", .step_name = "run-table" },
         .{ .name = "example-dashboard", .path = "examples/dashboard/main.zig", .step_name = "run-dashboard" },
         .{ .name = "example-dashboard-file", .path = "examples/dashboard.zig", .step_name = "run-dashboard-file" },
+        .{ .name = "example-components-layout", .path = "examples/components_layout/main.zig", .step_name = "run-components-layout" },
         .{ .name = "example-mouse", .path = "examples/mouse/main.zig", .step_name = "run-mouse" },
         .{ .name = "example-fullscreen", .path = "examples/fullscreen/main.zig", .step_name = "run-fullscreen" },
         .{ .name = "example-spinner", .path = "examples/spinner/main.zig", .step_name = "run-spinner" },

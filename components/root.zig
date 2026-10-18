@@ -49,7 +49,46 @@ pub const Menu = struct { items: []const MenuItem, selected: usize = 0, pub fn m
 pub const Navbar = struct { title: []const u8, links: []const []const u8, active: usize = 0 };
 pub const Sidebar = struct { items: []const []const u8, selected: usize = 0, collapsed: bool = false };
 pub const StatusBar = struct { left: []const u8 = "", center: []const u8 = "", right: []const u8 = "" };
-pub const ScrollView = struct { offset: usize = 0, content_height: usize = 0, viewport_height: usize = 0, pub fn scroll(self: *ScrollView, delta: isize) void { const max_offset = self.content_height -| self.viewport_height; const current: isize = @intCast(self.offset); self.offset = @intCast(@max(0, @min(@as(isize, @intCast(max_offset)), current + delta))); } };
+pub const ItemRange = struct { start: usize, end: usize };
+
+pub const ScrollView = struct {
+    offset: usize = 0,
+    content_height: usize = 0,
+    viewport_height: usize = 0,
+
+    pub fn maxOffset(self: ScrollView) usize {
+        return self.content_height -| self.viewport_height;
+    }
+
+    pub fn scrollTo(self: *ScrollView, offset: usize) void {
+        self.offset = @min(offset, self.maxOffset());
+    }
+
+    pub fn scroll(self: *ScrollView, delta: isize) void {
+        const current = @min(self.offset, self.maxOffset());
+        if (delta >= 0) {
+            self.scrollTo(current +| @as(usize, @intCast(delta)));
+        } else {
+            // Avoid negating minInt(isize), which would overflow.
+            const amount: usize = @as(usize, @intCast(-(delta + 1))) + 1;
+            self.scrollTo(current -| amount);
+        }
+    }
+
+    pub fn visibleRange(self: ScrollView) ItemRange {
+        const start = @min(self.offset, self.content_height);
+        return .{ .start = start, .end = @min(self.content_height, start +| self.viewport_height) };
+    }
+
+    pub fn ensureVisible(self: *ScrollView, index: usize) void {
+        if (self.viewport_height == 0 or index >= self.content_height) return;
+        if (index < self.offset) {
+            self.scrollTo(index);
+        } else if (index >= self.offset +| self.viewport_height) {
+            self.scrollTo(index - self.viewport_height + 1);
+        }
+    }
+};
 pub const SplitView = struct { ratio: f32 = 0.5, min_ratio: f32 = 0.15, max_ratio: f32 = 0.85, pub fn setRatio(self: *SplitView, value: f32) void { self.ratio = @max(self.min_ratio, @min(self.max_ratio, value)); } };
 pub const Grid = struct { columns: usize = 1, rows: usize = 1, pub fn cellCount(self: Grid) usize { return self.columns * self.rows; } };
 pub const TreeNode = struct { label: []const u8, children: []const TreeNode = &.{}, expanded: bool = false };
@@ -62,7 +101,67 @@ pub const Image = struct { alt: []const u8, source: []const u8 = "", width: usiz
 pub const Border = struct { style: BorderStyle = .single };
 pub const BorderStyle = enum { none, single, double, rounded, thick };
 pub const ListItem = struct { label: []const u8, description: []const u8 = "", disabled: bool = false };
-pub const ListView = struct { items: []const ListItem, selected: usize = 0, offset: usize = 0, pub fn move(self: *ListView, delta: isize) void { if (self.items.len == 0) return; const len: isize = @intCast(self.items.len); self.selected = @intCast(@max(0, @min(len - 1, @as(isize, @intCast(self.selected)) + delta))); } };
+pub const ListView = struct {
+    items: []const ListItem,
+    selected: usize = 0,
+    offset: usize = 0,
+
+    pub fn visibleRange(self: ListView, viewport_height: usize) ItemRange {
+        const start = @min(self.offset, self.items.len);
+        return .{ .start = start, .end = @min(self.items.len, start +| viewport_height) };
+    }
+
+    pub fn selectedItem(self: ListView) ?ListItem {
+        if (self.items.len == 0 or self.selected >= self.items.len) return null;
+        return self.items[self.selected];
+    }
+
+    pub fn move(self: *ListView, delta: isize) void {
+        self.moveInViewport(delta, 0);
+    }
+
+    pub fn moveInViewport(self: *ListView, delta: isize, viewport_height: usize) void {
+        if (self.items.len == 0) return;
+        self.selected = @min(self.selected, self.items.len - 1);
+
+        const direction: isize = if (delta < 0) -1 else 1;
+        var remaining: usize = if (delta < 0)
+            @intCast(-(delta + 1)) + 1
+        else
+            @intCast(delta);
+        if (remaining == 0) return;
+
+        while (remaining > 0) {
+            var next = self.selected;
+            var found = false;
+            while (true) {
+                if (direction < 0) {
+                    if (next == 0) break;
+                    next -= 1;
+                } else {
+                    if (next + 1 >= self.items.len) break;
+                    next += 1;
+                }
+                if (!self.items[next].disabled) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) break;
+            self.selected = next;
+            remaining -= 1;
+        }
+
+        if (viewport_height > 0) {
+            if (self.selected < self.offset) {
+                self.offset = self.selected;
+            } else if (self.selected >= self.offset +| viewport_height) {
+                self.offset = self.selected - viewport_height + 1;
+            }
+            self.offset = @min(self.offset, self.items.len -| viewport_height);
+        }
+    }
+};
 pub const TableColumn = struct { title: []const u8, width: usize = 12 };
 pub const Table = struct { columns: []const TableColumn, rows: []const []const []const u8, selected: usize = 0 };
 pub const TooltipPlacement = enum { top, right, bottom, left };
@@ -89,4 +188,37 @@ test "interactive component state transitions" {
     var modal = Modal{ .title = "Confirm", .body = "Proceed?" };
     modal.show();
     try @import("std").testing.expect(modal.open);
+}
+
+
+test "scroll view clamps offsets and computes visible range" {
+    var scroll_view = ScrollView{ .content_height = 20, .viewport_height = 5 };
+    scroll_view.scroll(3);
+    try std.testing.expectEqual(@as(usize, 3), scroll_view.offset);
+    try std.testing.expectEqual(ItemRange{ .start = 3, .end = 8 }, scroll_view.visibleRange());
+    scroll_view.scroll(-99);
+    try std.testing.expectEqual(@as(usize, 0), scroll_view.offset);
+    scroll_view.scrollTo(99);
+    try std.testing.expectEqual(@as(usize, 15), scroll_view.offset);
+    scroll_view.ensureVisible(2);
+    try std.testing.expectEqual(@as(usize, 2), scroll_view.offset);
+}
+
+test "list view skips disabled items and keeps selection visible" {
+    const items = [_]ListItem{
+        .{ .label = "first" },
+        .{ .label = "disabled", .disabled = true },
+        .{ .label = "third" },
+        .{ .label = "fourth" },
+    };
+    var list = ListView{ .items = &items };
+    list.moveInViewport(1, 2);
+    try std.testing.expectEqual(@as(usize, 2), list.selected);
+    try std.testing.expectEqual(@as(usize, 1), list.offset);
+    try std.testing.expectEqual(ItemRange{ .start = 1, .end = 3 }, list.visibleRange(2));
+    try std.testing.expectEqualStrings("third", list.selectedItem().?.label);
+    list.moveInViewport(99, 2);
+    try std.testing.expectEqual(@as(usize, 3), list.selected);
+    list.moveInViewport(-99, 2);
+    try std.testing.expectEqual(@as(usize, 0), list.selected);
 }
