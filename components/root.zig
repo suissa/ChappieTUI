@@ -126,7 +126,7 @@ pub const ListView = struct {
 
         const direction: isize = if (delta < 0) -1 else 1;
         var remaining: usize = if (delta < 0)
-            @intCast(-(delta + 1)) + 1
+            @as(usize, @intCast(-(delta + 1))) + 1
         else
             @intCast(delta);
         if (remaining == 0) return;
